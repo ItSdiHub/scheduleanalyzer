@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="نظام تقارير الحصص الرسمية لمعهد الشارقة للسياقة (SDI) - لوحة المؤشرات الإحصائية والتقرير التفصيلي للحصص الفارغة">
+    <meta name="author" content="م/ محمود محمد">
+    <title>نظام تقارير الحصص الرسمية - معهد الشارقة للسياقة (SDI)</title>
+
+    <!-- الخطوط الرسمية -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- تنسيقات التقارير الرسمية -->
+    <link rel="stylesheet" href="css/style.css?v=2.5">
+</head>
+<body>
+
+    <!-- ================= شريط التنقل العلوي ================= -->
+    <header class="top-navbar no-print">
+        <div class="container nav-container">
+            <div class="brand-section">
+                <img src="assets/sdi-logo.png" alt="SDI Logo" class="sdi-header-logo">
+                <div class="brand-title">
+                    <h1 data-i18n="brandTitle">نظام تحليل وتقارير الحصص الرسمية</h1>
+                    <p data-i18n="brandSub">معهد الشارقة للسياقة | Sharjah Driving Institute</p>
+                </div>
+            </div>
+
+            <div class="nav-tools">
+                <!-- شريط حالة الاتصال المباشر والتزامن اللحظي -->
+                <div class="realtime-status-pill" id="realtime-pill" title="حالة الاتصال المباشر والتزامن الفوري">
+                    <span class="pulse-dot online" id="realtime-dot"></span>
+                    <span id="realtime-text" data-i18n="statusOnline">متصل مباشر</span>
+                    <span class="users-badge" id="online-users-badge">👥 1 متصل</span>
+                    <button class="share-btn" onclick="app.showNetworkShareModal()" title="مشاركة الرابط مع الزملاء على أجهزتهم في نفس الشبكة" data-i18n="btnShare">🔗 مشاركة</button>
+                </div>
+
+                <!-- أزرار رفع وتحليل الملفات المباشرة -->
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-primary" onclick="document.getElementById('universal-file-input').click()" title="رفع ملف جدول الإتاحة المعتمد (Instructor Availability) PDF أو Excel">
+                        <span>📤</span> <span data-i18n="btnUploadAvailability">رفع جدول الإتاحة (Availability)</span>
+                    </button>
+                    <input type="file" id="universal-file-input" accept=".pdf,.xlsx,.xls,.csv" style="display: none;">
+
+                    <button class="btn btn-warning" style="background: #f37421; color: white; border: none; font-weight: 700;" onclick="document.getElementById('dayplan-file-input').click()" title="رفع ملف أو عدة ملفات لخطة اليوم الفعلية (Instructor Day Plan) في نفس الوقت لمقارنتها مع الإتاحة">
+                        <span>📋</span> <span data-i18n="btnUploadDayPlan">رفع خطة اليوم (Day Plan)</span>
+                    </button>
+                    <input type="file" id="dayplan-file-input" accept=".pdf,.xlsx,.xls,.csv" multiple style="display: none;">
+                </div>
+
+                <!-- زر التبديل ثنائي اللغة (Bilingual Arabic / English Switcher) -->
+                <button class="lang-btn" id="lang-btn" onclick="app.toggleLanguage()" title="Switch Language / تغيير اللغة">
+                    <span>🌐 English</span>
+                </button>
+
+                <div class="author-tag">
+                    <span data-i18n="developedBy">تطوير: م/ محمود محمد</span>
+                </div>
+
+                <button class="theme-btn" onclick="app.toggleTheme()" title="تبديل الوضع الليلي / الفاتح">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= شريط التبويبات وإجراءات الطباعة والتصدير ================= -->
+    <nav class="control-bar no-print">
+        <div class="container control-wrapper">
+            <!-- التبويبات الرئيسية -->
+            <div class="report-tabs">
+                <button class="tab-btn active" data-tab="report1" onclick="app.switchTab('report1')" id="tab-btn-r1">
+                    <span>📊</span> <span data-i18n="tabReport1">1. لوحة المؤشرات الإحصائية (صفحتان)</span>
+                </button>
+                <button class="tab-btn" data-tab="report2" onclick="app.switchTab('report2')" id="tab-btn-r2">
+                    <span>🗓️</span> <span id="tab-btn-r2-text" data-i18n="tabReport2">2. التقرير التفصيلي للحصص الفارغة</span>
+                </button>
+                <button class="tab-btn" data-tab="interactive" onclick="app.switchTab('interactive')" id="tab-btn-interactive">
+                    <span>🎮</span> <span data-i18n="tabInteractive">3. المحرر التفاعلي لجدول الحصص وفترات العمل</span>
+                </button>
+                <button class="tab-btn" data-tab="coding" onclick="app.switchTab('coding')" id="tab-btn-coding">
+                    <span>📝</span> <span data-i18n="tabCoding">4. نموذج تسجيل وتكويد المدربين</span>
+                </button>
+                <button class="tab-btn" data-tab="comparison" onclick="app.switchTab('comparison')" id="tab-btn-comparison" style="position: relative;">
+                    <span>🔍</span> <span data-i18n="tabComparison">5. مقارنة الخطة اليومية (Day Plan vs Availability)</span>
+                    <span id="comparison-conflicts-pill" class="badge-extra-manual" style="display: none; padding: 1px 6px; font-size: 10px; margin-right: 4px;">0</span>
+                </button>
+            </div>
+
+            <!-- أزرار الطباعة والتصدير الفورية -->
+            <div class="action-btns">
+                <button class="btn btn-outline" onclick="app.exportExcel()" title="تصدير جدول الحصص والمؤشرات كملف Excel">
+                    <span>📥</span> <span data-i18n="btnExportExcel">تصدير Excel</span>
+                </button>
+                <button class="btn btn-primary" onclick="app.printReport('report1')" title="طباعة لوحة المؤشرات فقط كـ PDF (صفحتان)">
+                    <span>🖨️</span> <span data-i18n="btnPrintReport1">طباعة المؤشرات (2 صفحة)</span>
+                </button>
+                <button class="btn btn-primary" onclick="app.printReport('report2')" title="طباعة تقرير الحصص الفارغة فقط كـ PDF (5 صفحات)">
+                    <span>🖨️</span> <span data-i18n="btnPrintReport2">طباعة الحصص الفارغة (5 صفحات)</span>
+                </button>
+                <button class="btn btn-success" onclick="app.printReport('all')" title="طباعة الحزمة الكاملة كـ PDF (7 صفحات متتالية)">
+                    <span>📑</span> <span data-i18n="btnPrintAll">طباعة الحزمة كاملة (7 صفحات PDF)</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================= شريط حالة الملفات الفورية المرفوعة ================= -->
+    <div class="active-file-bar no-print">
+        <div class="container active-file-flex">
+            <div class="file-status-info" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="file-icon">📁</span>
+                    <span class="file-status-label" data-i18n="activeFileLabel">جدول الإتاحة:</span>
+                    <span id="active-file-name" class="file-name-badge">Instructor Availability.pdf</span>
+                    <span id="active-file-time" class="file-time-badge">⚡ تم التحليل</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; border-right: 2px solid rgba(255,255,255,0.25); padding-right: 12px;">
+                    <span class="file-icon">📋</span>
+                    <span class="file-status-label" data-i18n="activeDayPlanLabel">خطة اليوم:</span>
+                    <span id="active-dayplan-name" class="file-name-badge" style="background: rgba(243, 116, 33, 0.2); border-color: #f37421; color: #fdba74;">Instructor Day Plan (11/10/2026)</span>
+                    <span id="active-dayplan-time" class="file-time-badge">⚡ تم التحليل</span>
+                </div>
+            </div>
+            <div class="file-actions">
+                <button class="btn-file-action" onclick="app.switchTab('comparison')" title="عرض مقارنة خطة اليوم مع جدول الإتاحة فورياً">
+                    <span>🔍 <span>مقارنة الخطة</span></span>
+                </button>
+                <button class="btn-file-action outline" onclick="app.openResetModal()" title="تصفير وتفريغ بيانات النظام والحصص">
+                    <span>🔄 <span data-i18n="btnZeroData">تصفير البيانات</span></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= الحاوية الرئيسية لعرض التقارير ================= -->
+    <main class="container">
+
+        <!-- ================= التقرير الأول: لوحة المؤشرات الإحصائية (صفحتان A4) ================= -->
+        <section id="view-report-1" class="report-view-container">
+            <div class="no-print" style="background: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div>
+                    <strong style="color: #0f172a; font-size: 15px;" data-i18n="r1BannerTitle">📊 التقرير الأول: لوحة المؤشرات الإحصائية</strong>
+                    <div style="font-size: 12px; color: #64748b;" data-i18n="r1BannerSub">مطابق بنسبة 100% للتقرير المعتمد (الصفحة 1: المؤشرات وفئات التدريب | الصفحة 2: ملخص أداء المدربين)</div>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="app.printReport('report1')" data-i18n="r1BannerBtn">🖨️ حفظ كـ PDF الآن (صفحتان)</button>
+            </div>
+            <div id="report-1-container">
+                <!-- يتم تصييره ديناميكياً بواسطة JavaScript -->
+            </div>
+        </section>
+
+        <!-- ================= التقرير الثاني: التقرير التفصيلي للحصص الفارغة (5 صفحات A4) ================= -->
+        <section id="view-report-2" class="report-view-container" style="display: none;">
+            <div class="no-print" style="background: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div>
+                    <strong style="color: #0f172a; font-size: 15px;" data-i18n="r2BannerTitle">🗓️ التقرير الثاني: التقرير التفصيلي للحصص الفارغة (موزع حسب الأيام)</strong>
+                    <div style="font-size: 12px; color: #64748b;" data-i18n="r2BannerSub">مطابق بنسبة 100% للتقرير المعتمد (مقسم لجميع المدربين المستخرجين من الملف في نفس الوقت)</div>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="app.printReport('report2')" data-i18n="r2BannerBtn">🖨️ حفظ كـ PDF الآن (تقرير الحصص الفارغة)</button>
+            </div>
+            <div id="report-2-container">
+                <!-- يتم تصييره ديناميكياً بواسطة JavaScript -->
+            </div>
+        </section>
+
+        <!-- ================= التبويب الثالث: المحرر التفاعلي وفترات العمل والتكويد ================= -->
+        <section id="view-interactive" style="display: none;">
+            <div id="interactive-editor-container">
+                <!-- يتم تصييره ديناميكياً بواسطة JavaScript -->
+            </div>
+        </section>
+
+        <!-- ================= التبويب الرابع: نموذج تسجيل وتكويد المدربين وفترات العمل ================= -->
+        <section id="view-coding" style="display: none;">
+            <div id="coding-manager-container">
+                <!-- يتم تصييره ديناميكياً بواسطة JavaScript -->
+            </div>
+        </section>
+
+        <!-- ================= التبويب الخامس: مقارنة خطة اليوم مع جدول الإتاحة المعتمد ================= -->
+        <section id="view-comparison" class="report-view-container" style="display: none;">
+            <div id="comparison-view-container">
+                <!-- يتم تصييره ديناميكياً بواسطة JavaScript -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- نافذة تعديل تفاصيل الحصة (مكان التدريب، الكورس، الطالب، الحصة المزدوجة) -->
+    <div id="slot-details-modal" class="sdi-modal-overlay" style="display: none;">
+        <div class="sdi-modal-card" style="max-width: 480px;">
+            <div class="sdi-modal-header">
+                <div>
+                    <h3 style="font-size: 16px; font-weight: 800; margin: 0; color: #0f172a;">
+                        ⚙️ تفاصيل الحصة ومكان التدريب (Y / R)
+                    </h3>
+                    <p id="slot-modal-subtitle" style="font-size: 12px; color: #64748b; margin: 3px 0 0 0;">
+                        تحديد مكان التدريب (ساحة أو شارع) ونوع الحصة (عادية أو مزدوجة)
+                    </p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="app.closeSlotModal()">&times;</button>
+            </div>
+
+            <form id="slot-details-form" onsubmit="event.preventDefault(); app.saveSlotModal();">
+                <input type="hidden" id="slot-modal-inst-id" value="">
+                <input type="hidden" id="slot-modal-slot-num" value="">
+                <input type="hidden" id="slot-modal-day-key" value="">
+
+                <div class="modal-form-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="slot-modal-student-name">اسم الطالب:</label>
+                        <input type="text" id="slot-modal-student-name" class="form-control" placeholder="مثال: ABDUR RAHMAN NUR NABI">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slot-modal-student-id">رقم القيد / الملف:</label>
+                        <input type="text" id="slot-modal-student-id" class="form-control" placeholder="مثال: 26870830">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slot-modal-course">كود الدورة:</label>
+                        <input type="text" id="slot-modal-course" class="form-control" placeholder="مثال: LMFA30R أو LMFA30D">
+                    </div>
+
+                    <!-- مكان التدريب: ساحة أو شارع -->
+                    <div class="form-group">
+                        <label for="slot-modal-location"><strong>مكان التدريب:</strong> <span style="color:#ef4444;">*</span></label>
+                        <select id="slot-modal-location" class="form-control" onchange="app.handleSlotModalLocationChange()">
+                            <option value="Y">🅿️ ساحة / باركنج (Y - Yard)</option>
+                            <option value="R">🛣️ تدريب بالشارع (R - Road)</option>
+                        </select>
+                    </div>
+
+                    <!-- نوع الحصة: عادية أو مزدوجة -->
+                    <div class="form-group">
+                        <label for="slot-modal-type"><strong>نوع الحصة:</strong> <span style="color:#ef4444;">*</span></label>
+                        <select id="slot-modal-type" class="form-control">
+                            <option value="R">👤 عادية (Regular - حصة واحدة)</option>
+                            <option value="D">⚡ مزدوجة (Double - حصتان متتاليتان)</option>
+                        </select>
+                    </div>
+
+                    <!-- قسم الطالب الثاني (خاص بتدريب الساحة للدراجة النارية Y فقط) -->
+                    <div id="slot-modal-mc-second-student-section" style="display: none; grid-column: 1 / -1; background: #f0fdf4; border: 1.5px dashed #22c55e; border-radius: 8px; padding: 12px; margin-top: 4px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <strong style="color: #166534; font-size: 13px;">👥 الطالب الثاني (دمج طالبين في ساحة الدراجة النارية)</strong>
+                            <span class="badge-yard" style="font-size: 10px; padding: 2px 6px;">🅿️ مسموح بالساحة فقط (Yard)</span>
+                        </div>
+                        <p style="font-size: 11px; color: #15803d; margin: 0 0 10px 0; line-height: 1.4;">
+                            💡 لائحة المعهد: يُسمح بتسجيل طالبين معاً في نفس الحصة للدراجة النارية أثناء تدريب الساحة (Yard). في تدريب الشارع (Road) يُسمح بطالب واحد فقط.
+                        </p>
+                        <div class="modal-form-grid" style="grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="slot-modal-student2-name" style="font-size: 11.5px;">اسم الطالب الثاني:</label>
+                                <input type="text" id="slot-modal-student2-name" class="form-control" placeholder="مثال: MOHAMMED RASHID">
+                            </div>
+                            <div class="form-group">
+                                <label for="slot-modal-student2-id" style="font-size: 11.5px;">رقم قيد الطالب الثاني:</label>
+                                <input type="text" id="slot-modal-student2-id" class="form-control" placeholder="مثال: 26998877">
+                            </div>
+                            <div class="form-group">
+                                <label for="slot-modal-student2-course" style="font-size: 11.5px;">كود دورة الطالب الثاني:</label>
+                                <input type="text" id="slot-modal-student2-course" class="form-control" placeholder="مثال: MCFM15R">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- حالة الحصة المثبتة يدوياً (Fixed) -->
+                    <div class="form-group" style="grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; background: #fff7ed; padding: 8px 12px; border-radius: 6px; border: 1px solid #fed7aa; margin-top: 4px;">
+                        <input type="checkbox" id="slot-modal-fixed" style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="slot-modal-fixed" style="margin: 0; font-weight: 700; color: #9a3412; cursor: pointer;">
+                            📌 حصة مثبتة يدوياً (Fixed - مدرجة بالخطة اليومية دون الإتاحة)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-form-actions">
+                    <button type="button" class="btn btn-outline" onclick="app.closeSlotModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">💾 حفظ التعديل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- طبقة السحب والإفلات للتحليل الفوري في نفس الوقت -->
+    <div id="drag-drop-overlay" class="drag-drop-overlay" style="display: none;" onclick="if(event.target === this) this.style.display='none'">
+        <div class="drag-drop-modal" style="position: relative;">
+            <button type="button" class="modal-close-btn" style="position: absolute; top: 12px; left: 16px; font-size: 20px;" onclick="document.getElementById('drag-drop-overlay').style.display='none'">&times;</button>
+            <div class="drag-icon-pulse">📥</div>
+            <h2 data-i18n="dragTitle">أفلت ملف التدريب هنا للتحليل الفوري في نفس الوقت</h2>
+            <p data-i18n="dragSub">يدعم ملفات معهد الشارقة للسياقة بصيغة PDF أو Excel (.xlsx, .xls, .csv)</p>
+            <div class="drag-types-badge" data-i18n="dragBadge">⚡ تحليل فوري للجداول، فترات العمل، والحصص الفارغة</div>
+        </div>
+    </div>
+
+    <!-- مؤشر التحليل اللحظي (Loading Spinner Modal) -->
+    <div id="parsing-loading-modal" class="parsing-loading-modal" style="display: none;" onclick="if(event.target === this) this.style.display='none'">
+        <div class="parsing-loading-box" style="position: relative;">
+            <button type="button" class="modal-close-btn" style="position: absolute; top: 12px; left: 16px; font-size: 18px;" onclick="document.getElementById('parsing-loading-modal').style.display='none'">&times;</button>
+            <div class="sdi-spinner"></div>
+            <h3 id="parsing-loading-title" data-i18n="loadingTitle">جاري تحليل الملف في نفس الوقت...</h3>
+            <p id="parsing-loading-desc" data-i18n="loadingSub">يتم الآن فك وتجميع بيانات الحصص والجداول التدريبية تلقائياً</p>
+        </div>
+    </div>
+
+    <!-- ================= نموذج تسجيل وتكويد المدرب (Instructor Registration & Coding Modal) ================= -->
+    <div id="instructor-coding-modal" class="sdi-modal-overlay" style="display: none;">
+        <div class="sdi-modal-card">
+            <div class="sdi-modal-header">
+                <div>
+                    <h3 id="modal-title" style="font-size: 16px; font-weight: 800; margin: 0; color: #0f172a;" data-i18n="modalInstructorTitle">
+                        📝 نموذج تسجيل وتكويد المدرب - SDI
+                    </h3>
+                    <p style="font-size: 12px; color: #64748b; margin: 3px 0 0 0;" data-i18n="modalInstructorSub">
+                        تسجيل وتحديد فئة التدريب وفترة العمل (الصباحية / المسائية) وتوليد كود الوردية تلقائياً
+                    </p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="app.closeInstructorModal()" aria-label="إغلاق">&times;</button>
+            </div>
+
+            <form id="instructor-form" onsubmit="event.preventDefault(); app.saveInstructorFromModal();">
+                <input type="hidden" id="modal-inst-mode" value="create">
+                <input type="hidden" id="modal-original-id" value="">
+
+                <div class="modal-form-grid">
+                    <div class="form-group">
+                        <label for="modal-inst-name"><span data-i18n="lblInstName">اسم المدرب:</span> <span style="color:#ef4444;">*</span></label>
+                        <input type="text" id="modal-inst-name" class="form-control" placeholder="مثال: Maqsood Ali Kachkol Amir" required oninput="app.updateModalCodePreview()">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-inst-shortname" data-i18n="modalInstShortName">الاسم المختصر (للعرض السريع):</label>
+                        <input type="text" id="modal-inst-shortname" class="form-control" placeholder="مثال: Maqsood Ali">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-inst-id"><span data-i18n="lblInstId">الرقم الوظيفي / الكود:</span> <span style="color:#ef4444;">*</span></label>
+                        <input type="text" id="modal-inst-id" class="form-control" placeholder="مثال: 102671" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modal-inst-category"><span data-i18n="lblInstCategory">فئة التدريب والمركبة:</span> <span style="color:#ef4444;">*</span></label>
+                        <select id="modal-inst-category" class="form-control" onchange="app.updateModalCodePreview()">
+                            <option value="LMFM" data-i18n="optionLMFM">🚗 مركبة خفيفة - جير عادي (LMFM - 40 دقيقة)</option>
+                            <option value="LMFA" data-i18n="optionLMFA">🚙 مركبة خفيفة - أوتوماتيك (LMFA - 40 دقيقة)</option>
+                            <option value="HT" data-i18n="optionHT">🚛 شاحنة ثقيلة (HTFM - 30 دقيقة)</option>
+                            <option value="MC" data-i18n="optionMC">🏍️ دراجة نارية (MC - 30 دقيقة)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="modal-inst-shift"><span data-i18n="lblInstShift">فترة العمل المعتمدة:</span> <span style="color:#ef4444;">*</span></label>
+                        <select id="modal-inst-shift" class="form-control" onchange="app.updateModalCodePreview()">
+                            <option value="S1" data-i18n="optionShiftMorning">🌅 الفترة الصباحية (الأولى) - الحصص 1 إلى 10 (أو 1 إلى 12 للشاحنة)</option>
+                            <option value="S2" data-i18n="optionShiftEvening">🌇 الفترة المسائية (الثانية) - الحصص 11 إلى 20 (أو 13 إلى 24 للشاحنة)</option>
+                            <option value="FIX" data-i18n="optionShiftFix">⏱️ فترة ثابتة (خاصة بالدراجة النارية 6 إلى 17)</option>
+                            <option value="SUP" data-i18n="optionShiftSup">👔 مشرف / سوبرفايزر (Supervisor) - حصص استثنائية (معدل إشغال 100%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- شريط المعاينة اللحظية لكود الوردية الذكي -->
+                <div class="smart-code-preview-box">
+                    <div class="smart-code-header">
+                        <span style="font-weight: 700; font-size: 13px;" data-i18n="modalAutoCodeTitle">⚡ كود الوردية المولد تلقائياً:</span>
+                        <span id="preview-shift-code" class="smart-code-badge">LMFM-S1</span>
+                    </div>
+                    <div id="preview-shift-desc" class="smart-code-details">
+                        نطاق الحصص المعروضة: <strong>1 إلى 10</strong> (10 حصص صباحية فقط | مدة الحصة 40 دقيقة)
+                    </div>
+                </div>
+
+                <div class="modal-form-actions">
+                    <button type="button" class="btn btn-outline" onclick="app.closeInstructorModal()" data-i18n="btnCancel">إلغاء</button>
+                    <button type="button" id="modal-delete-btn" class="btn btn-danger" style="display: none;" onclick="app.deleteInstructorFromModal()" data-i18n="modalDeleteBtn">🗑️ حذف المدرب</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="modalSaveBtn">💾 حفظ التكويد والبيانات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة منبثقة لمشاركة الرابط مع المستخدمين المتصلين في نفس الوقت -->
+    <div id="network-share-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3 data-i18n="shareModalTitle">🌐 مشاركة البرنامج مع المستخدمين في نفس الوقت</h3>
+                <button class="modal-close-btn" onclick="app.closeNetworkShareModal()">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;" data-i18n="shareModalDesc">
+                    البرنامج يدعم <strong>التزامن اللحظي (Real-Time Sync)</strong> بالكامل! أي تغيير يتم إجراؤه (حجز حصة، تفريغ، تكويد مدرب، أو رفع ملف) سينعكس <strong>تلقائياً وفورياً في أجزاء من الثانية</strong> لدى جميع المستخدمين المتصلين دون الحاجة لتحديث الصفحة.
+                </p>
+
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight: 800; color: #475569; display: block; margin-bottom: 6px;" data-i18n="shareLocalLabel">
+                        💻 الرابط على جهازك الحالي:
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="share-local-url" class="form-control" readonly value="http://localhost:5173" style="direction: ltr; font-family: monospace; font-weight: bold; background: white;">
+                        <button class="btn btn-outline btn-sm" onclick="app.copyToClipboard('share-local-url')" data-i18n="btnCopy">📋 نسخ</button>
+                    </div>
+                </div>
+
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
+                    <label style="font-size: 12px; font-weight: 800; color: #1e40af; display: block; margin-bottom: 6px;" data-i18n="shareNetworkLabel">
+                        👥 رابط باقي المستخدمين (على أجهزتهم في المعهد عبر Wi-Fi / الشبكة المحلية):
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="share-network-url" class="form-control" readonly value="http://192.168.0.121:5173" style="direction: ltr; font-family: monospace; font-weight: bold; color: #1d4ed8; background: white;">
+                        <button class="btn btn-primary btn-sm" onclick="app.copyToClipboard('share-network-url')" data-i18n="btnCopyLink">📋 نسخ الرابط</button>
+                    </div>
+                    <div style="font-size: 11.5px; color: #2563eb; margin-top: 8px; line-height: 1.5;" data-i18n="shareHint">
+                        ⚡ افتح هذا الرابط من أي جهاز كمبيوتر أو لابتوب أو جوال متصل بنفس شبكة المعهد ليعمل الفريق كاملاً في وقت واحد بتزامن حي!
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end;">
+                    <button class="btn btn-outline" onclick="app.closeNetworkShareModal()" data-i18n="btnClose">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد تصفير البيانات واختيار نوع التصفير -->
+    <div id="reset-confirm-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3 data-i18n="resetModalTitle">🔄 تصفير بيانات وجداول النظام</h3>
+                <button class="modal-close-btn" onclick="app.closeResetModal()">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6;" data-i18n="resetModalDesc">
+                    اختر نوع التصفير المطلوب تطبيقه فورياً عبر النظام ولدى جميع المستخدمين المتصلين:
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                    <!-- الخيار 1: تصفير كافة الحصص بالكامل 0% إشغال -->
+                    <button type="button" class="reset-choice-card" onclick="app.executeZeroReset('slots')">
+                        <div class="reset-choice-icon" style="background: #ecfdf5; color: #059669;">✨</div>
+                        <div style="text-align: right; flex: 1;">
+                            <strong style="display: block; font-size: 14px; color: #065f46; margin-bottom: 3px;" data-i18n="resetOption1Title">1. تصفير كافة الحصص (تفريغ الجداول 0% إشغال)</strong>
+                            <span style="font-size: 12px; color: #64748b; line-height: 1.4; display: block;" data-i18n="resetOption1Desc">
+                                تحويل كافة حصص جميع المدربين إلى "خالية" (مشغولة = 0، نسبة الإشغال = 0.0%) مع الاحتفاظ بالمدربين وفترات عملهم لتجهيز توزيع جديد.
+                            </span>
+                        </div>
+                    </button>
+
+                    <!-- الخيار 2: مسح شامل للبيانات والبدء من الصفر -->
+                    <button type="button" class="reset-choice-card" onclick="app.executeZeroReset('wipe')">
+                        <div class="reset-choice-icon" style="background: #fef2f2; color: #dc2626;">🗑️</div>
+                        <div style="text-align: right; flex: 1;">
+                            <strong style="display: block; font-size: 14px; color: #991b1b; margin-bottom: 3px;" data-i18n="resetOption2Title">2. تصفير شامل ومسح كافة المدربين (0 مدربين)</strong>
+                            <span style="font-size: 12px; color: #64748b; line-height: 1.4; display: block;" data-i18n="resetOption2Desc">
+                                مسح جميع بيانات المدربين والبدء من الصفر بانتظار رفع ملف تدريب جديد من المعهد أو تسجيل مدربين يدويين.
+                            </span>
+                        </div>
+                    </button>
+
+                    <!-- الخيار 3: استعادة البيانات الافتراضية الأولية -->
+                    <button type="button" class="reset-choice-card" onclick="app.executeZeroReset('default')">
+                        <div class="reset-choice-icon" style="background: #eff6ff; color: #2563eb;">↩️</div>
+                        <div style="text-align: right; flex: 1;">
+                            <strong style="display: block; font-size: 14px; color: #1e40af; margin-bottom: 3px;" data-i18n="resetOption3Title">3. استعادة البيانات الأولية المعتمدة (9 مدربين)</strong>
+                            <span style="font-size: 12px; color: #64748b; line-height: 1.4; display: block;" data-i18n="resetOption3Desc">
+                                إعادة تحميل قائمة المدربين الرسمية الافتراضية من ملف Availability المعتمد.
+                            </span>
+                        </div>
+                    </button>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end;">
+                    <button class="btn btn-outline" onclick="app.closeResetModal()" data-i18n="btnCancel">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- حاوية التنبيهات -->
+    <div id="toast-container" class="toast-container no-print"></div>
+
+    <!-- المكتبات وسكربتات التطبيق -->
+    <script src="vendor/pdf.min.js?v=2.6"></script>
+    <script src="vendor/xlsx.full.min.js?v=2.6"></script>
+    <script src="js/pdfParser.js?v=2.6"></script>
+    <script src="js/parser.js?v=2.6"></script>
+    <script src="js/sampleData.js?v=2.6"></script>
+    <script src="js/sampleDayPlan.js?v=2.6"></script>
+    <script src="js/dayPlanParser.js?v=2.6"></script>
+    <script src="js/comparisonEngine.js?v=2.6"></script>
+    <script src="js/translations.js?v=2.6"></script>
+    <script src="js/app.js?v=2.6"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "sdi-schedule-analyzer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "chart.js": "^4.5.1",
+    "node-windows": "^1.0.0-beta.8",
+    "pdfjs-dist": "^6.4.299",
+    "serve": "^14.2.6",
+    "ws": "^8.22.0",
+    "xlsx": "^0.18.5"
+  }
+}
